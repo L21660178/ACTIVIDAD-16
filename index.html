@@ -1,0 +1,209 @@
+<!-- ACTIVIDAD 16
+
+Objetivo: construir una galería de imágenes utilizando la API de Unsplash para obtener imágenes aleatorias
+Descripción: el usuario puede obtener nuevas imágenes aleatorias de la api de unsplash cada vez que presione un botón 
+
+ALUMNA: AMERICA JAZMIN ESTRADA HERNÁNDEZ 
+ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería de Imágenes Aleatorias</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e1e1e;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 100px; /* Ajuste para compensar el botón fijo */
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2.5em;
+      color: #ff6347;
+    }
+
+    /* Botón fijo */
+    .fixed-button {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 25px;
+      background-color: #ff6347;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      z-index: 1000;
+    }
+
+    .fixed-button:hover {
+      background-color: #ff4500;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    /* Estilos para las imágenes con contorno y sombra de luz */
+    .gallery img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 4px solid #ff6347; /* Contorno naranja */
+      box-shadow: 0 0 15px rgba(255, 99, 71, 0.7); /* Efecto de luz */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    /* Hover con más brillo en el contorno */
+    .gallery img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(255, 99, 71, 1); /* Más luz al hacer hover */
+    }
+
+    /* Estilos para la ventana modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 10px;
+    }
+
+    /* Botón de cierre "X" */
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 30px;
+      color: white;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+      .gallery img {
+        height: 200px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5em;
+      }
+      .gallery img {
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="fixed-button" id="fetch-images">Obtener nuevas imágenes</button>
+
+  <div class="container">
+    <h1>Galería de Imágenes Aleatorias</h1>
+    <div class="gallery" id="image-gallery"></div>
+  </div>
+
+  <!-- Ventana modal -->
+  <div class="modal" id="image-modal">
+    <span class="close-btn" id="close-btn">&times;</span>
+    <img id="modal-image" src="" alt="Imagen ampliada">
+  </div>
+
+  <script>
+    const accessKey = 'VqmufcWW_3pHXufq6n5u7Hd1MKPWyhbZSOYgEBpLe4Q';
+
+    document.getElementById('fetch-images').addEventListener('click', fetchRandomImages);
+
+    function fetchRandomImages() {
+      const url = `https://api.unsplash.com/photos/random?count=10&client_id=${accessKey}`;
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const gallery = document.getElementById('image-gallery');
+          gallery.innerHTML = '';  // Limpiar la galería antes de mostrar nuevas imágenes
+
+          data.forEach(image => {
+            const imgElement = document.createElement('img');
+            imgElement.src = image.urls.small;
+            imgElement.alt = image.alt_description;
+            imgElement.addEventListener('click', () => openModal(image.urls.full)); // Abrir modal con imagen grande
+            gallery.appendChild(imgElement);
+          });
+        })
+        .catch(error => console.error('Error al obtener imágenes:', error));
+    }
+
+    // Abrir el modal con la imagen ampliada
+    function openModal(imageUrl) {
+      const modal = document.getElementById('image-modal');
+      const modalImage = document.getElementById('modal-image');
+      modalImage.src = imageUrl;
+      modal.style.display = 'flex';
+    }
+
+    // Cerrar el modal
+    function closeModal() {
+      const modal = document.getElementById('image-modal');
+      modal.style.display = 'none';
+    }
+
+    // Botón de cierre
+    document.getElementById('close-btn').addEventListener('click', closeModal);
+
+    // Cerrar modal al presionar la tecla ESC
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // Cerrar modal al hacer clic fuera de la imagen
+    document.getElementById('image-modal').addEventListener('click', function (e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+  </script>
+
+</body>
+</html>
